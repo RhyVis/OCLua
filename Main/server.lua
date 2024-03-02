@@ -36,21 +36,23 @@ while true do
             if resp_code == 200 then
                 local result = ""
                 while true do
-                    local chunk, err = get_req.read()
+                    local chunk, _ = get_req.read()
                     if not chunk then
                         break
                     end
                     result = result .. chunk
                 end
-                local r = result
+                local result_final = result
 
                 --Stage extracting commands
-                local cm_t = json.decode(r)
+                local cm_t = json.decode(result_final)
                 local cr_t = {}
 
                 for sign, command in pairs(cm_t) do
 
-                    print("Received command pack: "..sign)
+                    if sign ~= "NULL" then
+                        print("Received valid command pack: " .. sign)
+                    end
 
                     local code, _ = load(command)
                     local opt, resp = xpcall(code, debug.traceback)
@@ -70,23 +72,23 @@ while true do
                 local conn = { ["content-type"] = "text/plain;charset=utf-8" }
                 local report_req = internet.request(url, json.encode(cr_t), conn)
 
-                local report_s = true
+                local report_status = true
                 local report_start_time = computer.uptime()
-                while report_s do
-                    local status, err = report_req.finishConnect()
+                while report_status do
+                    local status, _ = report_req.finishConnect()
                     if status then
                         break
                     end
                     if status == nil then
-                        report_s = false
+                        report_status = false
                     end
                     if computer.uptime() >= report_start_time + 1 then
                         report_req.close()
-                        report_s = false
+                        report_status = false
                     end
                     os.sleep(0)
                 end
-                if report_s then
+                if report_status then
                     report_req.close()
                 end
             end
