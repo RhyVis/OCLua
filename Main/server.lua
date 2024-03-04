@@ -69,7 +69,7 @@ while true do
                 end
 
                 --Stage report in
-                local conn = { ["content-type"] = "text/plain;charset=utf-8" }
+                local conn = { ["content-type"] = "text/plain" }
                 local report_req = internet.request(url, json.encode(cr_t), conn)
 
                 local report_status = true
